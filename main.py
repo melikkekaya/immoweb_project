@@ -1,34 +1,45 @@
-import requests
+import requests, re, json
 from bs4 import BeautifulSoup
-"house/for-sale?countries=BE&priceType=SALE_PRICE&page=1&orderBy=relevance"
-"https://www.immoweb.be/en/search/house/for-sale?countries=BE&priceType=SALE_PRICE&page=333&orderBy=relevance"
+
 root_url = "https://www.immoweb.be/en/search/"
 estate_types = ['house', 'apartment']
-max_page = 333  # Set the maximum page number to 333
-immo_link = []
-for estate in estate_types:
-    page = 1
-    while page <= max_page:
-        url = f"{root_url}{estate}/for-sale?countries=BE&page={page}&orderBy=relevance"
-        req = requests.get(url)
-        print("Page: ", page)
-        print("Status Code:", req.status_code)
+max_page = 1  # Set the maximum page number to 333
 
-        soup = BeautifulSoup(req.content, 'html.parser')
-        card_results = soup.find_all('article', class_='card--result')
+def get_url_list():
+    for estate in estate_types:
+        page = 1
+        while page <= max_page:
+            url = f"{root_url}{estate}/for-sale?countries=BE&page={page}&orderBy=relevance"
+            req = requests.get(url)
+            soup = BeautifulSoup(req.content, 'html.parser')
+            card_results = soup.find_all('article', class_='card--result')
+            immo_links = []
+            for article in card_results:
+                link = article.find('a', class_='card__title-link')
+                if link:
+                    immo_links.append(link['href'])
+            page += 1
+    return(immo_links)
+def get_immo_dict(immo_links):
+    for i,link in enumerate(immo_links):
+        req = requests.get(link)
+        soup = BeautifulSoup(req.text, 'html.parser')
+        
+        script_tags = soup.find_all('script')
+        second_script = script_tags[1]
+        script_content = second_script.string
+        new_script_content = script_content.split('\",\n                                            \"customer\": ')[0]
+        dict1 = json.loads(new_script_content)
+        print(type(dict1))
+        m = json.dumps(dict1, indent=4)
+        print(m)
 
-        href_links = []
+def replace_empty_with_none(dict_to_clean):
+        for key, value in dict_to_clean.items():
+            if isinstance(value, dict):
+                replace_empty_with_none(value)
+            elif isinstance(value, str) and not value:
+                dict_to_clean[key] = 'none'
 
-        for article in card_results:
-            link = article.find('a', class_='card__title-link')
-            if link:
-                href_links.append(link['href'])
-
-        for i, link in enumerate(href_links, 1):
-            immo_link = immo_link.append(link)
-            print(i, link)
-
-
-        page += 1
-
+get_immo_dict(get_url_list())
 print("Scraping completed.")
