@@ -2,7 +2,7 @@ import requests, re, json, pandas
 from bs4 import BeautifulSoup
 
 
-root_url = "https://www.immoweb.be/en/classified/villa/for-sale/hotton/6990/10552972"
+root_url = "https://www.immoweb.be/en/classified/villa/for-sale/andenne/5300/10561076"
 
 req = requests.get(root_url)
 print(req.status_code)
@@ -26,6 +26,9 @@ real_estate_info = {
 
 m = json.dumps(dict1, indent=4)
 print(m)
-# with open("neeeee.json", "w") as f:
+# with open("test2.json", "w") as f:
 #         json.dump(dict1, f,indent=4)
 
+# import pandas as pd
+# df = pd.read_json ('test.json')
+# df.to_csv ('test.csv', index = None)
