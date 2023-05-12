@@ -20,6 +20,7 @@ def get_url_list():
                     immo_links.append(link['href'])
             page += 1
     return(immo_links)
+
 def get_immo_dict(immo_links):
     for i,link in enumerate(immo_links):
         req = requests.get(link)
@@ -28,18 +29,21 @@ def get_immo_dict(immo_links):
         script_tags = soup.find_all('script')
         second_script = script_tags[1]
         script_content = second_script.string
-        new_script_content = script_content.split('\",\n                                            \"customer\": ')[0]
-        dict1 = json.loads(new_script_content)
-        print(type(dict1))
-        m = json.dumps(dict1, indent=4)
-        print(m)
+        new_script_content = script_content.split('"classified": ')[1]
+        new_new_cont = new_script_content.split(""",
+                                    "customer": """)[0]
+        dict1 = json.loads(new_new_cont)
+        # print(type(dict1))
+        # m = json.dumps(dict1, indent=4)
+        return dict1
 
 def replace_empty_with_none(dict_to_clean):
-        for key, value in dict_to_clean.items():
-            if isinstance(value, dict):
-                replace_empty_with_none(value)
-            elif isinstance(value, str) and not value:
-                dict_to_clean[key] = 'none'
+    for key, value in dict_to_clean.items():
+        if isinstance(value, dict):
+            replace_empty_with_none(value)
+        elif isinstance(value, str) and not value:
+            dict_to_clean[key] = None
+    return dict_to_clean
 
-get_immo_dict(get_url_list())
+print(replace_empty_with_none(get_immo_dict(get_url_list())))
 print("Scraping completed.")
