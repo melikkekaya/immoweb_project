@@ -5,6 +5,9 @@ import json
 from time import perf_counter
 import pandas as pd 
 
+# We can create a class and add the root_url, estate type and 
+# method of creating csv file to the init.
+
 root_url = "https://www.immoweb.be/en/search/"
 estate_types = ['house', 'apartment']
 max_page = 1  # Set the maximum page number to 333
