@@ -1,6 +1,4 @@
-
-
-import requests, re
+import requests, re, json
 from bs4 import BeautifulSoup
 
 root_url = "https://www.immoweb.be/en/search/apartment/for-sale?countries=BE&page=1&orderBy=relevance"
@@ -17,70 +15,44 @@ for article in cardresults:
     if link:
         href_links.append(link['href'])
 
-for i,link in enumerate(href_links,1):
-    print(i, link)
+#lists all the links
+# for i,link in enumerate(href_links,1):
+#     print(i, link)
 
 
-#Need to import csv module
-import csv
-#TEMPORARY NAME
-properties_list=[]
+#RETRIEVING INFO FROM EACH LINK
+list_of_property_info = []
+
+for link in href_links:
 
 
+    request = requests.get(link)
+    #retrieving info from each datalayer
+    data = re.findall("window.dataLayer =(.+?);\n", request.text, re.S)
+    #print(request.text)
 
 
-# Open a file in write mode.
-with open('file.csv', 'w') as property:
-    # Write all the dictionary keys in a file with commas separated.
-    property.write(','.join(properties_list[0].keys()))
-    property.write('\n') # Add a new line
-    for row in properties_list:
-        # Write the values in a row.
-        property.write(','.join(str(x) for x in row.values()))
-        #is it a blank space?
-        #property.write('\n') # Add a new line
+    if data:
+        list_of_property_info.append(json.loads(data[0]))
 
 
+    # if ls:
+    #     #first bracket for position in list, second for the classified(the property)
+    #     #third bracket for property dict (info inside property)
+    #     print(ls[0]['classified'])
+# for property in list_of_property_info:
+#     #[index in list][index of?][property is defined as classified][key of property dict]
+#     print(list_of_property_info[0][0]["classified"])
 
-#locality,property_type,property_sub_type,price,sale_type,number_of_rooms,living_area,
-#fully_equipped_kitchen,furnished,open_fire,terrace,garden,land_surface,land_plot_surface,facades
-#swimming_pool,building_state
+new_prop_list =[]
+for property in list_of_property_info:
+    #print(f"THIS IS PROPERTY INFO : {property[0]['classified']}")
+    new_prop_list.append(property[0]['classified'])
 
+print(new_prop_list)
+ 
 
-
-#Terrace/garden, specify area if yes
-
-#with panda
 import pandas
-
-df = pandas.DataFrame(properties_list)
-df.to_csv("property.csv", index = False)
-
-import requests, re
-from bs4 import BeautifulSoup
-
-root_url = "https://www.immoweb.be/en/search/apartment/for-sale?countries=BE&page=1&orderBy=relevance"
-req = requests.get(root_url)
-print(req.status_code)
-soup = BeautifulSoup(req.content, 'html.parser')
-
-card_results = soup.findAll('article', class_='card--result')
-
-href_links = []
-
-for article in card_results:
-    link = article.find('a', class_='card__title-link')
-    if link:
-        href_links.append(link['href'])
-
-#for i,link in enumerate(href_links,1):
- #   print(i, link)
-
-req = requests.get(href_links[0])
-#print(href_links[0])
-soup = BeautifulSoup(req.text,'html.parser')
-print(soup)
-temp_var = None
-for element in soup.findAll('window.dataLayer'):
-    print(element)
-    break
+#EXCEL USES ; AS DELIMITERS, THATS WHY IT WAS NOT WORKING LOL
+df = pandas.DataFrame(new_prop_list)
+df.to_csv("property7.csv", index = False, sep=";")
