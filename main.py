@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
-from concurrent.futures import ThreadPoolExecutor
+import concurrent.futures
+from multiprocessing import Pool
 import json
 from time import perf_counter
 
@@ -46,19 +47,18 @@ def replace_empty_with_none(dict_to_clean):
 start_time = perf_counter()
 
 immo_links = []
-with ThreadPoolExecutor() as executor:
-    for estate in estate_types:
-        immo_links.extend(executor.submit(get_url_list, estate).result())
+with Pool() as pool:
+    immo_links = pool.map(get_url_list, estate_types)
 
 immo_dicts = []
-with ThreadPoolExecutor() as executor:
-    for link in immo_links:
-        result = executor.submit(get_immo_dict, link).result()
+with Pool() as pool:
+    results = pool.map(get_immo_dict, immo_links)
+    for result in results:
         result = replace_empty_with_none(result)
         immo_dicts.append(result)
 
 with open('immo_dump.json', 'w') as outfile:
     json.dump(immo_dicts, outfile, indent=4)
 
-print("Scraping completed.")
+print("Scraping completed")
 print(f"\nTime spent inside the loop: {perf_counter() - start_time} seconds.")
