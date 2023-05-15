@@ -121,8 +121,12 @@ print(f"\nTime spent inside the loop: {perf_counter() - start_time} seconds.")
 #WITH SESSION Time spent inside the loop: 715.2603850000014 seconds.
 #WITH POOL Time spent inside the loop: 859.5627824999974 seconds.
 
+card_results = soup.find_all('article', class_='card--result')
 
-
+for article in card_results:
+    link = article.find('a', class_='card__title-link')
+    if link:
+        href_links.append(link['href'])
 
 #lists all the links
 # for i,link in enumerate(href_links,1):
