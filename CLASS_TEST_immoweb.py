@@ -7,7 +7,7 @@ from typing import List, Dict
 
 class Immoweb():
     # root_url = "https://www.immoweb.be/en/search/"
-    # all_data_file = "all_data.csv"
+    all_data_file = "all_data.csv"
     # search_links = []
     # estate_types = ['house', 'apartment']
     # all_immo_links = []
@@ -72,7 +72,7 @@ class Immoweb():
 
     def get_one_property_info(self, url_one_property:str) -> Dict: 
         req = requests.get(url_one_property)
-        print(req.status_code)
+        # print(req.status_code)
         read_html_prop = pd.read_html(req.text)
         df_one_property = pd.concat(read_html_prop, ignore_index=True)
 
@@ -94,6 +94,7 @@ class Immoweb():
         take info from get_one_prop_info() as json or dict,
         and add them to a csv for only one property.
         """
+        # original_dict = self.get_one_property_info()
 
         has_fireplace = int(original_dict.get('How many fireplaces?'))
         new_dict = {
@@ -117,8 +118,6 @@ class Immoweb():
         "Url": original_dict.get('url')
         }
         return new_dict
-        
-
 
     def adding_one_line_into_csv(self, new_dict):
         new_dict = self.clean_data_to_csv()
@@ -134,8 +133,9 @@ class Immoweb():
         """
         all_links = self.get_url_list()
         with ThreadPoolExecutor() as pool:
-            
-            pool.map(self.adding_one_line_into_csv(self.clean_data_to_csv(self.get_one_property_info)), all_links)
+            m = pool.map(self.get_one_property_info, all_links)
+            k = pool.map(self.clean_data_to_csv, m)
+            pool.map(self.adding_one_line_into_csv, k)
 
 # get_collective_data()
 
@@ -150,7 +150,7 @@ class Immoweb():
 
 main = Immoweb()
 # print(len(main.get_collective_data()))  
-print(main.get_collective_data())  
+main.get_collective_data()
 
 
 
