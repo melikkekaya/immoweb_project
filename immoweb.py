@@ -86,6 +86,7 @@ def clean_data_to_csv(original_dict) -> Dict:
 
 
 def adding_one_line_into_csv(new_dict):
+    new_dict = clean_data_to_csv()
     # with open (all_data_file, "w") as file:
     #     file.write(",".join(new_dict.values()))
     #     file.write("\n")
@@ -96,23 +97,35 @@ def adding_one_line_into_csv(new_dict):
         writer.writerow(new_dict)
 
 
+
+
+
 def get_collective_data():
     """
     clean_data_to_csv() for all urls from get_url_list() using pool
     """
-    collective_data=[]
-    with ThreadPoolExecutor() as pool:
-        all_immo_links = (pool.map(clean_data_to_csv))
+    # append data frame to CSV file
+    # df.to_csv('GFG.csv', mode='a', index=False, header=False)
+    #call clean data to csv for each urls
+    #collective_data=[]
+
     all_links = get_url_list()
     #all_links could be replaced directly by all_immo_links
-    for each_data in all_links:
-        with ThreadPoolExecutor() as pool:
-            collective_data.append( list(pool.map(clean_data_to_csv, each_data)))  
+
+
+    with ThreadPoolExecutor() as pool:
+        
+
+        #collective_data=(pool.map(clean_data_to_csv(),all_links))
+        # append data frame to CSV file
+        pool.map(adding_one_line_into_csv(),all_links)
+        # df.to_csv('appending.csv', mode='a', index=False, header=False)
+        
     
-    pass
+    
+get_collective_data()
 
-
-adding_one_line_into_csv(clean_data_to_csv(get_one_property_info("https://www.immoweb.be/en/classified/villa/for-sale/brasschaat/2930/10459437")))
+#adding_one_line_into_csv(clean_data_to_csv(get_one_property_info("https://www.immoweb.be/en/classified/villa/for-sale/brasschaat/2930/10459437")))
 # get_one_property_info("https://www.immoweb.be/en/classified/villa/for-sale/brasschaat/2930/10459437")
 
 
