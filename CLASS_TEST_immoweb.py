@@ -122,7 +122,7 @@ class Immoweb():
 
 
 main = Immoweb()
-print(main.new())
+print(main.new())  
 
 
 
