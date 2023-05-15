@@ -6,12 +6,12 @@ req = requests.get(root_url)
 print(req.status_code)
 soup = BeautifulSoup(req.content, 'html.parser')
 
-card_results = soup.findall('article', class='card--result')
+card_results = soup.findall('article', class_='card--result')
 
 href_links = []
 
-for article in cardresults:
-    link = article.find('a', class='card__title-link')
+for article in card_results:
+    link = article.find('a', class_='card__title-link')
     if link:
         href_links.append(link['href'])
 
