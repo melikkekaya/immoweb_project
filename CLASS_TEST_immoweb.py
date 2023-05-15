@@ -6,42 +6,70 @@ import pandas as pd
 from typing import List, Dict
 
 class Immoweb():
-    root_url = "https://www.immoweb.be/en/search/"
-    all_data_file = "all_data.csv"
-    search_links = []
-    estate_types = ['house', 'apartment']
-    all_immo_links = []
+    # root_url = "https://www.immoweb.be/en/search/"
+    # all_data_file = "all_data.csv"
+    # search_links = []
+    # estate_types = ['house', 'apartment']
+    # all_immo_links = []
 
-    def __init__(self):
-        self.search_links = self.get_search_list()
-        self.immo_links = self.get_link_from_search_page()
+    # def __init__(self):
+    #     self.search_links = self.get_search_list()
+    #     self.immo_links = self.get_link_from_search_page()
         
-    def get_search_list(self) -> List:
-        for estate in self.estate_types:
-            for page in range(1,334): #for testing purpose I changed from 334 to 2
-                url = f"{self.root_url}{estate}/for-sale?countries=BE&page={page}&orderBy=relevance"
-                self.search_links.append(url)
-        with ThreadPoolExecutor() as pool:
-            self.all_immo_links = list(pool.map(self.get_link_from_search_page, self.search_links))
-        return self.search_links
+    # def get_search_list(self) -> List:
+    #     for estate in self.estate_types:
+    #         for page in range(1,334): #for testing purpose I changed from 334 to 2
+    #             url = f"{self.root_url}{estate}/for-sale?countries=BE&page={page}&orderBy=relevance"
+    #             self.search_links.append(url)
+    #     with ThreadPoolExecutor() as pool:
+    #         self.all_immo_links = list(pool.map(self.get_link_from_search_page, self.search_links))
+    #     return self.search_links
 
-    def get_link_from_search_page(self,search_links):
-        for link in search_links:
-            req = requests.get(link)
-            soup = BeautifulSoup(req.content, 'html.parser')
-            card_results = soup.find_all('article', class_='card--result')
-            immo_links = []
-            for article in card_results:
-                link = article.find('a', class_='card__title-link')
-                if link:
-                    immo_links.append(link['href'])
-        # return immo_links
+    # def get_link_from_search_page(self,search_links):
+    #     for link in search_links:
+    #         req = requests.get(link)
+    #         soup = BeautifulSoup(req.content, 'html.parser')
+    #         card_results = soup.find_all('article', class_='card--result')
+    #         immo_links = []
+    #         for article in card_results:
+    #             link = article.find('a', class_='card__title-link')
+    #             if link:
+    #                 immo_links.append(link['href'])
+    #     # return immo_links
 
-    def new(self):
-        with ThreadPoolExecutor() as pool:
-            self.all_immo_links = list(pool.map(self.get_link_from_search_page, self.search_links))
-        return self.all_immo_links
+    # def new(self):
+    #     with ThreadPoolExecutor() as pool:
+    #         self.all_immo_links = list(pool.map(self.get_link_from_search_page, self.search_links))
+    #     return self.all_immo_links
     
+    def get_from_search_page(self,search_url):
+        req = requests.get(search_url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+        card_results = soup.find_all('article', class_='card--result')
+        immo_links = []
+        for article in card_results:
+            link = article.find('a', class_='card__title-link')
+            if link:
+                immo_links.append(link['href'])
+        return immo_links
+
+    def get_url_list(self) -> List:
+        root_url = "https://www.immoweb.be/en/search/"
+        estate_types = ['house', 'apartment']
+        all_immo_links = []
+        search_links = []
+
+        for estate in estate_types:
+            for page in range(1,2): #for testing purpose I changed from 334 to 2
+                url = f"{root_url}{estate}/for-sale?countries=BE&page={page}&orderBy=relevance"
+                search_links.append(url)
+        
+        with ThreadPoolExecutor() as pool:
+            all_immo_links = list(pool.map(self.get_from_search_page, search_links))
+        all_immo_links = all_immo_links[0]+all_immo_links[1]
+
+        return all_immo_links
+
     def get_one_property_info(self, url_one_property:str) -> Dict: 
         req = requests.get(url_one_property)
         print(req.status_code)
@@ -104,11 +132,10 @@ class Immoweb():
         """
         clean_data_to_csv() for all urls from get_url_list() using pool
         """
-
         all_links = self.get_url_list()
         with ThreadPoolExecutor() as pool:
-
-            pool.map(self.adding_one_line_into_csv(),all_links)
+            
+            pool.map(self.adding_one_line_into_csv(self.clean_data_to_csv(self.get_one_property_info)), all_links)
 
 # get_collective_data()
 
@@ -122,8 +149,8 @@ class Immoweb():
 
 
 main = Immoweb()
-print(main.new())  
-
+# print(len(main.get_collective_data()))  
+print(main.get_collective_data())  
 
 
 
