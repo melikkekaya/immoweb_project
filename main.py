@@ -39,28 +39,22 @@ def get_property(url, session):
         read_html_prop = pd.read_html(req.text)
         property = pd.concat(read_html_prop).set_index(0).T
         property["id"] = url.split("/")[-1]
+        property["location"] = url.split("/")[-3]
+        
+        window_data = re.findall("window.dataLayer =(.+?);\n", req.text, re.S)
+        extra_data = json.loads(window_data[0])[0]['classified']
+
+        property["Type"] = extra_data["type"]
+        property["Subtype"] = extra_data["subtype"]
+        property["Price"] = extra_data["price"]
+        property["Transaction Type"] = extra_data["transactionType"]
+        property["Zip"] = extra_data["zip"]
+        
         property = property.set_index("id")
         property = property.loc[:, ~property.columns.duplicated()].copy()
-        
+
         return property
     
-
-        # df_prop = df_prop.loc[:, ~df_prop.columns.duplicated()].copy()
-
-        # data_prop.append(df_prop)
-
-        # return data_prop
-        # list_of_property_info = []
-        # window_data = re.findall("window.dataLayer =(.+?);\n", req.text, re.S)
-        # if window_data:
-        #     list_of_property_info.append(json.loads(window_data[0])[0]['classified'])
-        
-        # original_dict = list_of_property_info[0]
-
-        # for i in df_one_property.index:
-        #     original_dict[df_one_property[0][i]] = df_one_property[1][i]
-
-        #     df_dict = pd.DataFrame([original_dict])
     except Exception as e:
         print(type(e))
         return e
@@ -74,5 +68,5 @@ if __name__ == "__main__":
         properties = pd.concat(df for df in thread_map(partial(get_property, session=session), urls) 
                                if isinstance(df, pd.DataFrame))
 
-    properties.to_csv("properties.csv")
+    properties.to_csv("properties_data.csv")
 
